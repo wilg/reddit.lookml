@@ -1,4 +1,4 @@
-- view: 2015_10
+- view: comment
   sql_table_name: |
       [fh-bigquery:reddit_comments.[2015_10]]
   fields:
