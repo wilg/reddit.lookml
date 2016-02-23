@@ -1,12 +1,26 @@
 - view: comment
-  sql_table_name: |
-      [fh-bigquery:reddit_comments.[2015_10]]
+  extends: sentiment_analysis
+#   sql_table_name: |
+#     [fh-bigquery:reddit_comments.2015_10]
+  derived_table:
+    sql: |
+      (select * from [fh-bigquery:reddit_comments.2015_10] limit 100000)
+    persist_for: 3600 hours
+
   fields:
 
   - dimension: id
     primary_key: true
     type: string
     sql: ${TABLE}.id
+
+  - dimension: post_id
+    type: string
+    sql: ${TABLE}.link_id
+
+  - dimension: parent_id
+    type: string
+    sql: ${TABLE}.parent_id
 
   - dimension: archived
     type: yesno
@@ -32,9 +46,10 @@
     type: number
     sql: ${TABLE}.controversiality
 
-  - dimension: created_utc
-    type: number
-    sql: ${TABLE}.created_utc
+  - dimension: created
+    type: time
+    datatype: epoch
+    sql: INTEGER(${TABLE}.created_utc)
 
   - dimension: distinguished
     type: string
@@ -48,17 +63,9 @@
     type: number
     sql: ${TABLE}.gilded
 
-  - dimension: link_id
-    type: string
-    sql: ${TABLE}.link_id
-
   - dimension: name
     type: string
     sql: ${TABLE}.name
-
-  - dimension: parent_id
-    type: string
-    sql: ${TABLE}.parent_id
 
   - dimension: retrieved_on
     type: number

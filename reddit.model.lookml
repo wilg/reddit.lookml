@@ -5,3 +5,10 @@
 
 - explore: post
   persist_for: 8760 hour
+  
+- explore: comment
+  persist_for: 8760 hour
+  joins:
+    - join: post
+      relationship: many_to_one
+      sql_on: ${post.long_id} = ${comment.post_id}

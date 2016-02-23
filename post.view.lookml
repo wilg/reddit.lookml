@@ -1,9 +1,14 @@
 - view: post
+  extends: sentiment_analysis
+#   sql_table_name: "[fh-bigquery:reddit_posts.full_corpus_201512]"
   derived_table:
     sql: |
-      (select * from [fh-bigquery:reddit_posts.full_corpus_201509] limit 10000)
+      select * from [fh-bigquery:reddit_posts.full_corpus_201512] as post
+      where 
+        (((INTEGER(post.created_utc)) >= (TIMESTAMP_TO_SEC(TIMESTAMP(TIMESTAMP('2015-10-01')))) AND (INTEGER(post.created_utc)) < (TIMESTAMP_TO_SEC(TIMESTAMP(DATE_ADD(TIMESTAMP('2015-10-01'), 1, 'MONTH'))))))
+      limit 100000
     persist_for: 3600 hours
-  
+
   fields:
 
     - dimension: id
@@ -13,6 +18,13 @@
         - label: View Post
           url: https://reddit.com/{{value}}
           icon_url: https://www.reddit.com/favicon.ico
+        - label: View Link
+          url: "{{ post.url._value }}"
+          icon_url: https://www.reddit.com/favicon.ico
+
+    - dimension: long_id
+      type: string
+      sql: ${TABLE}.name
 
     - dimension: author
       type: string
@@ -36,6 +48,10 @@
         - label: /r/{{value}}
           url: https://www.reddit.com/r/{{value}}
           icon_url: https://www.reddit.com/favicon.ico
+      drill_fields: [author, nsfw, self_post, title]
+          
+    - dimension: body
+      sql: CONCAT(${title}, ' ', ${selftext})
 
     - dimension: selftext
       type: string
@@ -57,6 +73,7 @@
 
     - dimension: title
       type: string
+      drill_fields: [id]
 
     - dimension: num_comments
       type: number
@@ -104,7 +121,7 @@
 
     - dimension: self_post
       type: yesno
-      sql: ${TABLE}.is_self
+      sql: ${TABLE}.is_self OR ${url} = 'self'
 
     - dimension: from_id
       type: string
@@ -112,11 +129,24 @@
 #     - dimension: permalink
 #       type: string
 
-    - dimension: name
-      type: string
-
     - dimension: url
       type: string
+      
+    - dimension: image_file_extension
+      sql: REGEXP_EXTRACT(LOWER(${url}), r'(jpg|jpeg|gif|png|gifv)$')
+      
+    - dimension: is_image
+      type: yesno
+      sql: |
+        ${domain} CONTAINS 'imgur.com' OR
+        ${domain} CONTAINS 'imgflip.com' OR
+        ${domain} CONTAINS 'gfycat.com' OR
+        ${domain} CONTAINS 'twimg.com' OR
+        ${image_file_extension} IS NOT NULL
+        
+    - dimension: is_external_link
+      type: yesno
+      sql: NOT (${domain} CONTAINS 'reddit.com')
 
     - dimension: author_flair_text
       type: string
@@ -145,9 +175,18 @@
     - measure: comment_count
       type: sum
       sql: ${num_comments}
+      drill_fields: detail*
+
+    - measure: average_score
+      type: average
+      sql: ${score}
+      decimals: 1
+      drill_fields: detail*
 
   sets:
     detail:
+      - id
+      - score
       - title
       - author
       - created_time
