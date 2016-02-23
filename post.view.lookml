@@ -6,37 +6,33 @@
     - dimension: id
       type: string
       primary_key: true
-      html: |
-        {{linked_value}} 
-        <a href="https://reddit.com/{{value}}" rel="noreferrer">
-          <img width="16" height="16" src="https://www.reddit.com/favicon.ico" rel="noreferrer">
-        </a>
+      links:
+        - label: View Post
+          url: https://reddit.com/{{value}}
+          icon_url: https://www.reddit.com/favicon.ico
 
     - dimension: author
       type: string
-      html: |
-        {{linked_value}} 
-        <a href="https://www.reddit.com/user/{{value}}" rel="noreferrer">
-          <img width="16" height="16" src="https://www.reddit.com/favicon.ico" rel="noreferrer">
-        </a>
+      links:
+        - label: /u/{{value}}
+          url: https://reddit.com/user/{{value}}
+          icon_url: https://www.reddit.com/favicon.ico
 
     - dimension: domain
       type: string
-      html: |
-        {{linked_value}} 
-        <a href="http://{{value}}" rel="noreferrer">
-          <img width="16" height="16" src="http://{{value}}/favicon.ico" rel="noreferrer">
-        </a>
       sql: |
         CASE WHEN ${TABLE}.is_self THEN NULL ELSE ${TABLE}.domain END
+      links:
+        - label: View Domain
+          url: http://{{value}}
+          icon_url: http://{{value}}/favicon.ico
 
     - dimension: subreddit
       type: string
-      html: |
-        {{linked_value}} 
-        <a href="https://www.reddit.com/r/{{value}}" rel="noreferrer">
-          <img width="16" height="16" src="https://www.reddit.com/favicon.ico" rel="noreferrer">
-        </a>
+      links:
+        - label: /r/{{value}}
+          url: https://www.reddit.com/r/{{value}}
+          icon_url: https://www.reddit.com/favicon.ico
 
     - dimension: selftext
       type: string
