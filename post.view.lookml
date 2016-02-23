@@ -1,6 +1,9 @@
 - view: post
-  sql_table_name: "[fh-bigquery:reddit_posts.full_corpus_201509]"
-
+  derived_table:
+    sql: |
+      (select * from [fh-bigquery:reddit_posts.full_corpus_201509] limit 10000)
+    persist_for: 3600 hours
+  
   fields:
 
     - dimension: id
@@ -123,7 +126,6 @@
 
     - dimension: created
       type: time
-      timeframes: [time, date, week, month, year, hour_of_day, day_of_week, week_of_year]
       datatype: epoch
       sql: INTEGER(${TABLE}.created_utc)
       
@@ -150,5 +152,4 @@
       - author
       - created_time
       - subreddit
-      - url
 
