@@ -5,7 +5,9 @@
 
 - explore: post
   persist_for: 8760 hour
-  
+  always_filter:
+    nsfw: No
+
 - explore: comment
   persist_for: 8760 hour
   joins:
